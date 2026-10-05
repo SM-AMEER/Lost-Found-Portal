@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Lost & Found Portal — My Dashboard</title>
+<style>
+:root{--bg:#eef1f6;--card:#fff;--ink:#1b2236;--mute:#667089;--line:#dde2ec;--side:#252836;--pink:#d6338a;--lost:#b7791f;--lostbg:#fdf3dc;--found:#0f766e;--foundbg:#dcf4f1;--claimed:#475069;--claimedbg:#e6e9f1;--bad:#b42318;--badbg:#fde4e1}
+@media(prefers-color-scheme:dark){:root{--bg:#171a24;--card:#222636;--ink:#eceff6;--mute:#9aa3b9;--line:#343a4f;--side:#10121a;--lostbg:#3a2f14;--foundbg:#12332f;--claimedbg:#31374a;--lost:#f1c35b;--found:#5fd3c6;--claimed:#b9c1d6;--bad:#ff8a7e;--badbg:#3d1d1a}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--side);color:#d9dcea;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font:600 18px/1.2 Georgia,serif;color:#fff;margin:0 8px 24px}
+aside h1 span{color:#f58fc3}
+nav button{display:flex;justify-content:space-between;width:100%;background:none;border:0;color:inherit;font:inherit;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left}
+nav button:hover{background:#ffffff14}
+nav button[aria-current=true]{background:var(--pink);color:#fff}
+nav b{background:#ffffff26;border-radius:10px;padding:0 8px;font-size:12px}
+.me{margin-top:auto;padding:10px 12px;font-size:13px;border-top:1px solid #ffffff22}
+.me strong{display:block;color:#fff}
+:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+main{padding:28px 32px;min-width:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+h2{font:600 26px Georgia,serif;margin:0}
+.btn{background:var(--pink);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;border-top:4px solid var(--c)}
+.stat strong{display:block;font:600 30px Georgia,serif}
+.stat span{color:var(--mute);font-size:13px}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0;margin-bottom:16px}
+.grid .panel{margin:0}
+.panel h3{margin:0 0 12px;font-size:16px}
+.act{display:flex;gap:10px;flex-wrap:wrap}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+input,select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:100%}
+.tools input{flex:1;min-width:180px;width:auto}.tools select{width:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.item{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
+.item img{width:100%;height:120px;object-fit:cover;border-radius:6px}
+.item h4{margin:0;font-size:15px}
+.item small{color:var(--mute)}
+.item .push{margin-top:auto;padding-top:6px}
+.tag{display:inline-block;padding:1px 10px;border-radius:12px;font-size:12.5px;font-weight:600;background:var(--b);color:var(--t);width:max-content}
+.lost{--b:var(--lostbg);--t:var(--lost)}.found{--b:var(--foundbg);--t:var(--found)}.claimed,.approved{--b:var(--claimedbg);--t:var(--claimed)}.pending{--b:var(--lostbg);--t:var(--lost)}.rejected{--b:var(--badbg);--t:var(--bad)}
+.empty{color:var(--mute);padding:14px 2px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:720px}
+form label{display:grid;gap:4px;font-weight:600;font-size:14px}
+form .full{grid-column:1/-1}
+fieldset{border:0;padding:0;margin:0;display:flex;gap:20px}
+fieldset label{display:flex;align-items:center;gap:6px;font-weight:600}
+fieldset input{width:auto}
+#prev{max-height:130px;border-radius:8px;display:none}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:10px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.list li.unread{font-weight:600}
+.list time{color:var(--mute);font-size:13px;white-space:nowrap;font-weight:400}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:440px;width:92%;padding:22px}
+dialog::backdrop{background:#0008}
+dialog h3{margin:0 0 4px}
+dialog textarea{min-height:100px;margin:10px 0}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.on{opacity:1}
+section[hidden]{display:none}
+@media(max-width:860px){body{grid-template-columns:1fr}aside{position:static;height:auto;padding:12px}aside h1{margin-bottom:10px}nav{display:flex;overflow-x:auto;gap:4px}nav button{white-space:nowrap;width:auto;gap:8px}.me{display:none}main{padding:18px 14px}.grid,form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside>
+  <h1>Lost &amp; Found <span>Portal</span></h1>
+  <nav id="nav">
+    <button data-v="home" aria-current="true">Home</button>
+    <button data-v="browse">Search items</button>
+    <button data-v="report">Report an item</button>
+    <button data-v="mine">My activity</button>
+    <button data-v="notes">Notifications <b id="nNotes"></b></button>
+  </nav>
+  <div class="me"><strong>Priya Raman</strong>Student · priya@campus.edu</div>
+</aside>
+<main>
+  <header><h2 id="title">Home</h2><button class="btn" data-go="report">Report an item</button></header>
+
+  <section id="home">
+    <div class="stats" id="stats"></div>
+    <div class="grid">
+      <div class="panel"><h3>Recently found on campus</h3><div class="list" id="recentFound"></div></div>
+      <div class="panel"><h3>Latest updates</h3><ul class="list" id="recentNotes"></ul></div>
+    </div>
+  </section>
+
+  <section id="browse" hidden>
+    <div class="tools">
+      <input id="q" type="search" placeholder="Search by name, place or category" aria-label="Search items">
+      <select id="fs" aria-label="Filter by status"><option value="">Lost and found</option><option value="found">Found only</option><option value="lost">Lost only</option></select>
+      <select id="fc" aria-label="Filter by category"><option value="">All categories</option></select>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="report" hidden>
+    <div class="panel">
+      <form id="rf">
+        <fieldset class="full" aria-label="Report type">
+          <label><input type="radio" name="type" value="lost" checked> I lost something</label>
+          <label><input type="radio" name="type" value="found"> I found something</label>
+        </fieldset>
+        <label class="full">Item name<input name="title" required maxlength="60" placeholder="e.g. Black backpack with red zip"></label>
+        <label>Category<select name="category" id="rcat" required></select></label>
+        <label>Date<input type="date" name="date" id="rdate" required></label>
+        <label class="full">Location<input name="location" required placeholder="Where was it lost or found?"></label>
+        <label class="full">Description and tags<textarea name="desc" rows="3" placeholder="Colour, brand, marks. For found items, keep one detail back so owners can prove it is theirs."></textarea></label>
+        <label class="full">Photo (optional)<input type="file" id="photo" accept="image/*"></label>
+        <img id="prev" alt="Photo preview" class="full">
+        <div class="full"><button class="btn" type="submit">Submit report</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="mine" hidden>
+    <div class="panel"><h3>My reports</h3><ul class="list" id="myItems"></ul></div>
+    <div class="panel"><h3>My claims</h3><ul class="list" id="myClaims"></ul></div>
+  </section>
+
+  <section id="notes" hidden>
+    <div class="panel"><div class="act" style="margin-bottom:8px"><button class="btn ghost sm" id="readAll">Mark all as read</button></div><ul class="list" id="allNotes"></ul></div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" id="cf" style="display:block;max-width:none">
+    <h3>Claim this item</h3><small id="dItem" style="color:var(--mute)"></small>
+    <textarea id="proof" required placeholder="Describe something only the owner would know: marks, contents, lock-screen, serial number."></textarea>
+    <div class="act" style="justify-content:flex-end"><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn" id="send" value="ok">Submit claim</button></div>
+  </form>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+// ---- Sample data (replace with fetch() calls to your PHP endpoints / MySQL).
+const ME = 1;
+const CATS = ["Accessories","Bags","Documents","Electronics","Keys","Others"];
+let items = [
+  {id:101,title:"Black backpack",category:"Bags",location:"Library, Floor 2",date:"2026-10-01",by:1,status:"lost"},
+  {id:102,title:"Set of 3 keys with blue tag",category:"Keys",location:"Main gate",date:"2026-10-02",by:3,status:"found"},
+  {id:103,title:"iPhone 13 (green case)",category:"Electronics",location:"Canteen",date:"2026-10-02",by:2,status:"found"},
+  {id:104,title:"Student ID card",category:"Documents",location:"Block C corridor",date:"2026-10-03",by:4,status:"claimed"},
+  {id:105,title:"Silver wristwatch",category:"Accessories",location:"Sports ground",date:"2026-09-29",by:1,status:"lost"},
+  {id:106,title:"Scientific calculator",category:"Electronics",location:"Lab 4",date:"2026-09-30",by:3,status:"found"},
+  {id:107,title:"Water bottle (steel)",category:"Others",location:"Auditorium",date:"2026-10-04",by:2,status:"lost"},
+  {id:108,title:"Prescription glasses",category:"Accessories",location:"Bus stand",date:"2026-10-04",by:4,status:"found"},
+  {id:110,title:"Laptop charger",category:"Electronics",location:"Library, Floor 1",date:"2026-10-05",by:1,status:"found"}
+];
+let claims = [
+  {id:1,item:108,claimant:ME,proof:"Black rectangular frame, scratch on left lens.",status:"pending"},
+  {id:2,item:106,claimant:ME,proof:"Casio fx-991, my initials scratched on the back.",status:"rejected"}
+];
+let notes = [
+  {t:"2026-10-05 09:30",m:"Your claim for “Scientific calculator” was rejected. Add more proof and try again.",read:false},
+  {t:"2026-10-04 18:02",m:"Your claim for “Prescription glasses” is waiting for admin review.",read:false},
+  {t:"2026-10-02 10:15",m:"Your report “Black backpack” is now live.",read:true}
+];
+let nextId = 200;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const tag = s => `<span class="tag ${s}">${s}</span>`;
+const now = () => new Date().toISOString().slice(0,16).replace("T"," ");
+const itemOf = id => items.find(i=>i.id===id);
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),2400)}
+function notify(m){notes.unshift({t:now(),m,read:false})}
+
+function renderHome(){
+  const mine = items.filter(i=>i.by===ME), pend = claims.filter(c=>c.claimant===ME&&c.status==="pending").length;
+  $("#stats").innerHTML = [["My reports",mine.length,"var(--pink)"],["Still missing",mine.filter(i=>i.status==="lost").length,"var(--lost)"],
+    ["Claims pending",pend,"var(--found)"],["Unread updates",notes.filter(n=>!n.read).length,"var(--bad)"]]
+    .map(([l,n,c])=>`<div class="stat" style="--c:${c}"><strong>${n}</strong><span>${l}</span></div>`).join("");
+  const rf = items.filter(i=>i.status==="found").sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+  $("#recentFound").innerHTML = rf.map(i=>`<li><span><b>${esc(i.title)}</b><br><small style="color:var(--mute)">${esc(i.location)} · ${i.date}</small></span><button class="btn ghost sm" data-claim="${i.id}">Claim</button></li>`).join("") || `<p class="empty">Nothing has been reported found yet.</p>`;
+  $("#recentNotes").innerHTML = notes.slice(0,3).map(n=>`<li class="${n.read?"":"unread"}"><span>${esc(n.m)}</span><time>${n.t.slice(5)}</time></li>`).join("") || `<p class="empty">No updates yet.</p>`;
+  $("#nNotes").textContent = notes.filter(n=>!n.read).length || "";
+}
+function renderBrowse(){
+  const q=$("#q").value.toLowerCase(), s=$("#fs").value, c=$("#fc").value;
+  const rows = items.filter(i=>i.status!=="claimed"&&(!s||i.status===s)&&(!c||i.category===c)&&(!q||(i.title+i.location+i.category).toLowerCase().includes(q)));
+  $("#cards").innerHTML = rows.length ? rows.map(i=>{
+    const mineI=i.by===ME, done=claims.some(x=>x.item===i.id&&x.claimant===ME&&x.status==="pending");
+    return `<article class="item">${i.photo?`<img src="${i.photo}" alt="">`:""}<div>${tag(i.status)}</div><h4>${esc(i.title)}</h4><small>${i.category} · ${esc(i.location)} · ${i.date}</small>
+    <div class="push">${i.status==="found"?(mineI?`<small>You reported this</small>`:done?`<small>Claim sent, awaiting review</small>`:`<button class="btn sm" data-claim="${i.id}">This is mine</button>`):`<small>${mineI?"Your report":"Seen it? Tell the admin."}</small>`}</div></article>`}).join("")
+    : `<p class="empty">No items match. Try fewer words, or report your item so finders can reach you.</p>`;
+}
+function renderMine(){
+  $("#myItems").innerHTML = items.filter(i=>i.by===ME).map(i=>`<li><span><b>${esc(i.title)}</b> <small style="color:var(--mute)">${esc(i.location)} · ${i.date}</small></span>${tag(i.status)}</li>`).join("") || `<p class="empty">You haven't reported anything yet.</p>`;
+  $("#myClaims").innerHTML = claims.filter(c=>c.claimant===ME).map(c=>`<li><span><b>${esc(itemOf(c.item).title)}</b><br><small style="color:var(--mute)">${esc(c.proof)}</small></span>${tag(c.status)}</li>`).join("") || `<p class="empty">No claims yet. Open Search items and choose “This is mine”.</p>`;
+}
+function renderNotes(){
+  $("#allNotes").innerHTML = notes.map(n=>`<li class="${n.read?"":"unread"}"><span>${esc(n.m)}</span><time>${n.t}</time></li>`).join("");
+}
+function renderAll(){renderHome();renderBrowse();renderMine();renderNotes()}
+
+// ---- Navigation
+const titles={home:"Home",browse:"Search items",report:"Report an item",mine:"My activity",notes:"Notifications"};
+function go(v){
+  document.querySelectorAll("main section").forEach(s=>s.hidden=s.id!==v);
+  document.querySelectorAll("#nav button").forEach(b=>b.dataset.v===v?b.setAttribute("aria-current","true"):b.removeAttribute("aria-current"));
+  $("#title").textContent=titles[v]; scrollTo(0,0);
+}
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.v)});
+
+// ---- Claim dialog
+let claimFor=null;
+document.addEventListener("click",e=>{
+  const d=e.target.dataset;
+  if(d.go) go(d.go);
+  if(d.claim){claimFor=itemOf(+d.claim);$("#dItem").textContent=claimFor.title+" · "+claimFor.location;$("#proof").value="";$("#dlg").showModal()}
+});
+$("#cf").addEventListener("submit",e=>{
+  if(e.submitter.value!=="ok") return;
+  claims.push({id:nextId++,item:claimFor.id,claimant:ME,proof:$("#proof").value.trim(),status:"pending"});
+  notify(`Your claim for “${claimFor.title}” is waiting for admin review.`);
+  toast("Claim submitted. You'll be notified after review."); renderAll();
+});
+
+// ---- Report form
+$("#rcat").innerHTML = CATS.map(c=>`<option>${c}</option>`).join("");
+$("#fc").insertAdjacentHTML("beforeend",CATS.map(c=>`<option>${c}</option>`).join(""));
+$("#rdate").value = "2026-10-05"; $("#rdate").max = "2026-10-05";
+let photoData="";
+$("#photo").addEventListener("change",e=>{
+  const f=e.target.files[0], p=$("#prev"); photoData="";
+  if(!f){p.style.display="none";return}
+  const r=new FileReader(); r.onload=()=>{photoData=r.result;p.src=photoData;p.style.display="block"}; r.readAsDataURL(f);
+});
+$("#rf").addEventListener("submit",e=>{
+  e.preventDefault(); const f=new FormData(e.target);
+  items.unshift({id:nextId++,title:f.get("title").trim(),category:f.get("category"),location:f.get("location").trim(),date:f.get("date"),by:ME,status:f.get("type"),photo:photoData});
+  notify(`Your report “${f.get("title").trim()}” is now live.`);
+  e.target.reset(); $("#rdate").value="2026-10-05"; $("#prev").style.display="none"; photoData="";
+  toast("Report submitted"); renderAll(); go("mine");
+});
+
+["q","fs","fc"].forEach(id=>$("#"+id).addEventListener("input",renderBrowse));
+$("#readAll").addEventListener("click",()=>{notes.forEach(n=>n.read=true);renderAll()});
+renderAll();
+</script>
+</body>
+</html>
